@@ -1,0 +1,17 @@
+{
+  "id": "4839201",
+  "title": "AI Engineer (LLM / RAG)",
+  "company": { "display_name": "Nubank México" },
+  "location": {
+    "display_name": "Cuauhtémoc, Ciudad de México",
+    "area": ["Mexico", "Ciudad de México", "Cuauhtémoc"]
+  },
+  "category": { "label": "IT Jobs", "tag": "it-jobs" },
+  "salary_min": 780000.0,
+  "salary_max": 960000.0,
+  "salary_is_predicted": "0",
+  "created": "2026-07-28T09:14:22Z",
+  "description": "Buscamos AI Engineer con experiencia en LLM, RAG y PyTorch para construir agentes.",
+  "redirect_url": "https://www.adzuna.com.mx/details/4839201",
+  "contract_time": "full_time"
+}

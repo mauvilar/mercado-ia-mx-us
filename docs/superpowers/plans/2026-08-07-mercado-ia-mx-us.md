@@ -807,7 +807,7 @@ class AdzunaClient:
     def search(
         self, country: str, *, what: str, where: str, page: int, max_days_old: int = 60
     ) -> list[dict[str, Any]]:
-        params = {
+        params: dict[str, Any] = {
             "app_id": self.app_id,
             "app_key": self.app_key,
             "results_per_page": self.results_per_page,

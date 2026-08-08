@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -22,17 +22,17 @@ def _load_yaml(name: str) -> dict[str, Any]:
         return yaml.safe_load(fh)
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_cities() -> dict[str, Any]:
     return _load_yaml("cities.yml")
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_skills() -> dict[str, Any]:
     return _load_yaml("skills.yml")
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_taxonomy() -> dict[str, Any]:
     return _load_yaml("taxonomy.yml")
 

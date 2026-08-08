@@ -178,17 +178,20 @@ KAGGLE_KEY=
 MX:
   - canonical: Ciudad de México
     metro: Valle de México
-    aliases: [Ciudad de Mexico, CDMX, Mexico City, Distrito Federal, Cuauhtémoc,
-              Miguel Hidalgo, Benito Juárez, Álvaro Obregón, Naucalpan, Tlalnepantla]
+    aliases: [Ciudad de Mexico, CDMX, Mexico City, Distrito Federal, Cuauhtémoc, Cuauhtemoc,
+              Miguel Hidalgo, Benito Juárez, Benito Juarez, Álvaro Obregón, Alvaro Obregon,
+              Naucalpan, Tlalnepantla]
   - canonical: Querétaro
     metro: Querétaro
-    aliases: [Queretaro, Santiago de Querétaro, El Marqués, Corregidora, San Juan del Río]
+    aliases: [Queretaro, Santiago de Querétaro, Santiago de Queretaro, El Marqués, El Marques,
+              Corregidora, San Juan del Río, San Juan del Rio]
   - canonical: Monterrey
     metro: Monterrey
-    aliases: [San Pedro Garza García, Guadalupe, Apodaca, Santa Catarina, San Nicolás]
+    aliases: [San Pedro Garza García, San Pedro Garza Garcia, Guadalupe, Apodaca,
+              Santa Catarina, San Nicolás, San Nicolas]
   - canonical: Guadalajara
     metro: Guadalajara
-    aliases: [Zapopan, Tlaquepaque, Tonalá, Tlajomulco]
+    aliases: [Zapopan, Tlaquepaque, Tonalá, Tonala, Tlajomulco]
 US:
   - canonical: San Francisco
     metro: SF Bay Area
@@ -196,7 +199,7 @@ US:
               San Jose, Sunnyvale, Cupertino, Redwood City, Oakland, Berkeley]
   - canonical: New York
     metro: NYC
-    aliases: [New York City, Manhattan, Brooklyn, Queens, Jersey City, Newark]
+    aliases: [New York City, Manhattan, Brooklyn, Queens, Jersey City]
   - canonical: Seattle
     metro: Seattle
     aliases: [Bellevue, Redmond, Kirkland]
@@ -218,17 +221,21 @@ US:
 ia_aplicada:
   llm: [llm, large language model, gpt, claude, gemini, modelo de lenguaje]
   rag: [rag, retrieval augmented, retrieval-augmented]
-  fine_tuning: [fine-tuning, fine tuning, finetuning, lora, peft, ajuste fino]
-  pytorch: [pytorch, torch]
+  # 'lora' se quitó: colisiona con LoRa/LoRaWAN, muy común en vacantes de IoT/embebidos
+  fine_tuning: [fine-tuning, fine tuning, finetuning, peft, ajuste fino]
+  # 'torch' a secas se quitó: colisiona con soplete/torch de oxicorte en vacantes industriales
+  pytorch: [pytorch]
   tensorflow: [tensorflow, keras]
   langchain: [langchain, llamaindex, llama-index]
   vector_db: [pinecone, weaviate, qdrant, chroma, milvus, pgvector, vector database,
               base de datos vectorial]
   embeddings: [embedding, embeddings, sentence-transformers]
-  transformers: [transformer, transformers, hugging face, huggingface]
+  # 'transformer' singular se quitó: colisiona con transformador eléctrico en mantenimiento industrial
+  transformers: [transformers, hugging face, huggingface]
   prompt_eng: [prompt engineering, ingeniería de prompts]
   mlops: [mlops, mlflow, kubeflow, model serving, feature store]
-  agents: [ai agent, agentes de ia, agentic, multi-agent, mcp]
+  # 'mcp' a secas se quitó: colisiona con Microsoft Certified Professional
+  agents: [ai agent, agentes de ia, agentic, multi-agent, model context protocol]
 
 # grupo "soporte": se miden para las primas salariales pero NO disparan el anillo
 soporte:
@@ -248,23 +255,23 @@ soporte:
 # NÚCLEO: el título declara el trabajo de IA. Requiere término_ia Y término_rol.
 nucleo:
   terminos_ia:
-    - \bai\b
-    - \ba\.i\.\b
+    - ai
+    - a\.i\.
     - artificial intelligence
     - inteligencia artificial
-    - \bml\b
+    - ml
     - machine learning
     - aprendizaje autom[áa]tico
     - deep learning
-    - \bllm\b
-    - \bnlp\b
+    - llm
+    - nlp
     - natural language
     - computer vision
     - visi[óo]n por computadora
-    - \bmlops\b
-    - gen ?ai
-    - generative ai
-    - ia generativa
+    - mlops
+    - gen ?ai
+    - generative ai
+    - ia generativa
   terminos_rol:
     - engineer
     - ingenier[oa]
@@ -1729,6 +1736,19 @@ def test_no_confunde_palabras_que_contienen_ai():
     """'Maintenance' contiene 'ai' — el \\b del regex debe evitar el falso positivo."""
     assert clasificar("Maintenance Engineer", skills=[]) == "fuera"
     assert clasificar("Retail Engineer", skills=[]) == "fuera"
+
+
+def test_gen_ai_no_caza_nitrogen_ni_hydrogen():
+    """Regresión: 'gen ?ai' sin anclas casaba dentro de 'nitroGEN AIr'. Querétaro y
+    Monterrey están llenos de vacantes industriales con esas palabras."""
+    assert clasificar("Nitrogen Air Systems Engineer", skills=[]) == "fuera"
+    assert clasificar("Hydrogen Airflow Engineer", skills=[]) == "fuera"
+    assert clasificar("GenAI Engineer", skills=[]) == "nucleo"
+
+
+def test_reconoce_el_titulo_con_puntos():
+    """Regresión: '\\ba\\.i\\.\\b' era un patrón muerto — el \\b tras un punto no casa nunca."""
+    assert clasificar("Especialista en A.I.", skills=[]) == "nucleo"
 ```
 
 - [ ] **Step 2: Correr el test y verificar que falla**

@@ -2,17 +2,20 @@
 MX:
   - canonical: Ciudad de México
     metro: Valle de México
-    aliases: [Ciudad de Mexico, CDMX, Mexico City, Distrito Federal, Cuauhtémoc,
-              Miguel Hidalgo, Benito Juárez, Álvaro Obregón, Naucalpan, Tlalnepantla]
+    aliases: [Ciudad de Mexico, CDMX, Mexico City, Distrito Federal, Cuauhtémoc, Cuauhtemoc,
+              Miguel Hidalgo, Benito Juárez, Benito Juarez, Álvaro Obregón, Alvaro Obregon,
+              Naucalpan, Tlalnepantla]
   - canonical: Querétaro
     metro: Querétaro
-    aliases: [Queretaro, Santiago de Querétaro, El Marqués, Corregidora, San Juan del Río]
+    aliases: [Queretaro, Santiago de Querétaro, Santiago de Queretaro, El Marqués, El Marques,
+              Corregidora, San Juan del Río, San Juan del Rio]
   - canonical: Monterrey
     metro: Monterrey
-    aliases: [San Pedro Garza García, Guadalupe, Apodaca, Santa Catarina, San Nicolás]
+    aliases: [San Pedro Garza García, San Pedro Garza Garcia, Guadalupe, Apodaca,
+              Santa Catarina, San Nicolás, San Nicolas]
   - canonical: Guadalajara
     metro: Guadalajara
-    aliases: [Zapopan, Tlaquepaque, Tonalá, Tlajomulco]
+    aliases: [Zapopan, Tlaquepaque, Tonalá, Tonala, Tlajomulco]
 US:
   - canonical: San Francisco
     metro: SF Bay Area
@@ -20,7 +23,7 @@ US:
               San Jose, Sunnyvale, Cupertino, Redwood City, Oakland, Berkeley]
   - canonical: New York
     metro: NYC
-    aliases: [New York City, Manhattan, Brooklyn, Queens, Jersey City, Newark]
+    aliases: [New York City, Manhattan, Brooklyn, Queens, Jersey City]
   - canonical: Seattle
     metro: Seattle
     aliases: [Bellevue, Redmond, Kirkland]

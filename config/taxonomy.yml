@@ -2,7 +2,7 @@
 nucleo:
   terminos_ia:
     - \bai\b
-    - \ba\.i\.\b
+    - \ba\.i\.
     - artificial intelligence
     - inteligencia artificial
     - \bml\b
@@ -15,9 +15,9 @@ nucleo:
     - computer vision
     - visi[óo]n por computadora
     - \bmlops\b
-    - gen ?ai
-    - generative ai
-    - ia generativa
+    - \bgen ?ai\b
+    - \bgenerative ai\b
+    - \bia generativa\b
   terminos_rol:
     - engineer
     - ingenier[oa]

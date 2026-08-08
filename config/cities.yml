@@ -1,0 +1,35 @@
+# Cada entrada mapea los alias que devuelven las APIs a una ciudad canónica y su metro.
+MX:
+  - canonical: Ciudad de México
+    metro: Valle de México
+    aliases: [Ciudad de Mexico, CDMX, Mexico City, Distrito Federal, Cuauhtémoc,
+              Miguel Hidalgo, Benito Juárez, Álvaro Obregón, Naucalpan, Tlalnepantla]
+  - canonical: Querétaro
+    metro: Querétaro
+    aliases: [Queretaro, Santiago de Querétaro, El Marqués, Corregidora, San Juan del Río]
+  - canonical: Monterrey
+    metro: Monterrey
+    aliases: [San Pedro Garza García, Guadalupe, Apodaca, Santa Catarina, San Nicolás]
+  - canonical: Guadalajara
+    metro: Guadalajara
+    aliases: [Zapopan, Tlaquepaque, Tonalá, Tlajomulco]
+US:
+  - canonical: San Francisco
+    metro: SF Bay Area
+    aliases: [South San Francisco, Palo Alto, Mountain View, Menlo Park, Santa Clara,
+              San Jose, Sunnyvale, Cupertino, Redwood City, Oakland, Berkeley]
+  - canonical: New York
+    metro: NYC
+    aliases: [New York City, Manhattan, Brooklyn, Queens, Jersey City, Newark]
+  - canonical: Seattle
+    metro: Seattle
+    aliases: [Bellevue, Redmond, Kirkland]
+  - canonical: Austin
+    metro: Austin
+    aliases: [Round Rock, Cedar Park]
+  - canonical: Boston
+    metro: Boston
+    aliases: [Cambridge, Somerville, Waltham]
+  - canonical: Los Angeles
+    metro: Los Angeles
+    aliases: [Santa Monica, Pasadena, Burbank, El Segundo, Culver City]

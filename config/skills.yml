@@ -1,0 +1,26 @@
+# grupo "ia_aplicada": son los que disparan la clasificación de anillo (§5.1 del spec)
+ia_aplicada:
+  llm: [llm, large language model, gpt, claude, gemini, modelo de lenguaje]
+  rag: [rag, retrieval augmented, retrieval-augmented]
+  fine_tuning: [fine-tuning, fine tuning, finetuning, lora, peft, ajuste fino]
+  pytorch: [pytorch, torch]
+  tensorflow: [tensorflow, keras]
+  langchain: [langchain, llamaindex, llama-index]
+  vector_db: [pinecone, weaviate, qdrant, chroma, milvus, pgvector, vector database,
+              base de datos vectorial]
+  embeddings: [embedding, embeddings, sentence-transformers]
+  transformers: [transformer, transformers, hugging face, huggingface]
+  prompt_eng: [prompt engineering, ingeniería de prompts]
+  mlops: [mlops, mlflow, kubeflow, model serving, feature store]
+  agents: [ai agent, agentes de ia, agentic, multi-agent, mcp]
+
+# grupo "soporte": se miden para las primas salariales pero NO disparan el anillo
+soporte:
+  python: [python]
+  sql: [sql, postgresql, mysql, bigquery, snowflake]
+  spark: [spark, pyspark, databricks]
+  aws: [aws, sagemaker, bedrock]
+  gcp: [gcp, google cloud, vertex ai]
+  azure: [azure, azure openai]
+  docker: [docker, kubernetes, k8s]
+  airflow: [airflow, dagster, prefect]

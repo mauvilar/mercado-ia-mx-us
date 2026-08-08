@@ -1,0 +1,35 @@
+# NÚCLEO: el título declara el trabajo de IA. Requiere término_ia Y término_rol.
+nucleo:
+  terminos_ia:
+    - \bai\b
+    - \ba\.i\.\b
+    - artificial intelligence
+    - inteligencia artificial
+    - \bml\b
+    - machine learning
+    - aprendizaje autom[áa]tico
+    - deep learning
+    - \bllm\b
+    - \bnlp\b
+    - natural language
+    - computer vision
+    - visi[óo]n por computadora
+    - \bmlops\b
+    - gen ?ai
+    - generative ai
+    - ia generativa
+  terminos_rol:
+    - engineer
+    - ingenier[oa]
+    - developer
+    - desarrollador[a]?
+    - scientist
+    - cient[íi]fic[oa]
+    - architect
+    - arquitect[oa]
+    - specialist
+    - especialista
+
+# ANILLO: no cumple núcleo pero la descripción trae >= min_skills del grupo ia_aplicada.
+anillo:
+  min_skills: 2

@@ -521,7 +521,6 @@ git commit -m "feat: sonda de viabilidad de cobertura salarial (compuerta día 0
 `tests/test_schema.py`:
 
 ```python
-import pandas as pd
 import pytest
 
 from src.data.schema import CANONICAL_COLUMNS, SchemaError, empty_frame, validate_frame
@@ -3194,8 +3193,8 @@ git commit -m "feat: imputación con hold-out mexicano y criterio de publicació
 - [ ] **Step 2: Implementar partición, entrenamiento y veredicto**
 
 ```python
-from src.models.impute import entrenar, particionar, preparar, FEATURES
-from src.models.evaluate import evaluar_holdout_mx, baseline_pais_seniority, mdape
+from src.models.impute import FEATURES, entrenar, particionar
+from src.models.evaluate import evaluar_holdout_mx
 
 train, holdout = particionar(df)
 print(f"Entrenamiento (sin México): {len(train):,}")

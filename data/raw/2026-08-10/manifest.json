@@ -1,14 +1,14 @@
 {
   "snapshot_date": "2026-08-10",
-  "filas": 4938,
-  "filas_con_salario_observado": 1069,
+  "filas": 4715,
+  "filas_con_salario_observado": 1067,
   "consultas_totales": 108,
   "consultas_fallidas": [
     {
-      "country": "MX",
-      "where": "Guadalajara",
-      "what": "inteligencia artificial",
-      "error": "502 Server Error: Bad Gateway for url: https://api.adzuna.com/v1/api/jobs/mx/search/1?app_id=307b94d8&app_key=8bcf56d8c85924a86645abc1762dac56&results_per_page=50&what=inteligencia+artificial&where=Guadalajara&max_days_old=60&content-type=application%2Fjson"
+      "country": "US",
+      "where": "New York",
+      "what": "AI engineer",
+      "error": "502 Server Error: Bad Gateway for url: https://api.adzuna.com/v1/api/jobs/us/search/2?app_id=307b94d8&app_key=8bcf56d8c85924a86645abc1762dac56&results_per_page=50&what=AI+engineer&where=New+York&max_days_old=60&content-type=application%2Fjson"
     }
   ],
   "tasa_exito": 0.9907

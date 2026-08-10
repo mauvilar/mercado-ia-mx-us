@@ -1,8 +1,14 @@
 name: Recolección semanal
 
+# Sólo se dispara a mano, desde la pestaña Actions o con:
+#   gh workflow run "Recolección semanal" --repo mauvilar/mercado-ia-mx-us
+#
+# Para reactivar la corrida automática, descomenta el bloque schedule. El corpus se
+# acumula por snapshot con fecha, así que reanudarlo más tarde no rompe nada: sólo
+# deja un hueco en la serie correspondiente a las semanas sin correr.
 on:
-  schedule:
-    - cron: "0 13 * * 1"   # lunes 13:00 UTC = 7:00 CDMX
+  # schedule:
+  #   - cron: "0 13 * * 1"   # lunes 13:00 UTC = 7:00 CDMX
   workflow_dispatch:
 
 jobs:

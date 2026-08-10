@@ -115,6 +115,25 @@ def construir(raiz_datos: Path) -> pd.DataFrame:
     df = pd.concat(marcos, ignore_index=True)
     log.info("Cargadas %s filas de %s snapshots", len(df), n_snapshots)
 
+    # §3 del spec: el alcance son México y Estados Unidos. Fuera de eso hay vacantes en
+    # euros y libras que a_usd no convierte a propósito, porque no queremos compararlas.
+    # OJO: parte de lo que se cae aquí son filas estadounidenses cuyo país no mapeó —
+    # kaggle_mannacharya trae "Santa Clara", "CA", "NY" en su columna de país. Es pérdida
+    # conocida y está medida en el log; mejorar ese mapeo recuperaría cientos de filas.
+    en_alcance = df["country"].isin(["MX", "US"])
+    con_salario = df["salary_observed"].fillna(False).astype(bool)
+    perdidas, perdidas_con_salario = (
+        int((~en_alcance).sum()),
+        int((~en_alcance & con_salario).sum()),
+    )
+    if perdidas:
+        log.info(
+            "Descartadas %s filas fuera de alcance (país != MX/US); %s de ellas traían salario",
+            perdidas,
+            perdidas_con_salario,
+        )
+    df = df[en_alcance].reset_index(drop=True)
+
     # --- extracción sobre el texto ---
     texto = df["title_raw"].fillna("") + " " + df["description_text"].fillna("")
     df["skills"] = texto.map(extraer_skills)

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import time
 from collections import Counter
+from typing import Any
 
 import requests
 
@@ -26,19 +27,16 @@ ZONAS = {
 
 
 def sondear(pais: str, que: str, donde: str, app_id: str, app_key: str) -> list[dict]:
-    resp = requests.get(
-        f"{BASE}/{pais}/search/1",
-        params={
-            "app_id": app_id,
-            "app_key": app_key,
-            "results_per_page": 50,
-            "what": que,
-            "where": donde,
-            "max_days_old": 60,
-            "content-type": "application/json",
-        },
-        timeout=30,
-    )
+    params: dict[str, Any] = {
+        "app_id": app_id,
+        "app_key": app_key,
+        "results_per_page": 50,
+        "what": que,
+        "where": donde,
+        "max_days_old": 60,
+        "content-type": "application/json",
+    }
+    resp = requests.get(f"{BASE}/{pais}/search/1", params=params, timeout=30)
     resp.raise_for_status()
     return resp.json().get("results", [])
 

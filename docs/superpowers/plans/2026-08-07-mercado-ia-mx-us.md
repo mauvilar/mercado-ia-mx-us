@@ -1408,7 +1408,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import os
 import subprocess
 import zipfile
 from datetime import date
@@ -1422,6 +1421,12 @@ from src.utils.config import DATA_DIR
 
 REFS = {
     "kaggle_mannacharya": "mannacharya/ai-job-listings-bi-weekly-updated",
+    # ADVERTENCIA (hallado 2026-08-10 al correr Step 5 de la Task 7): este ref 403ea
+    # con {"code":403,"message":"Permission 'datasets.get' was denied"}. No es
+    # credenciales (mannacharya sí descarga con las mismas): el usuario de Kaggle
+    # "aijobs" no existe — GET /api/v1/datasets/list?user=aijobs devuelve [] y tanto
+    # kaggle.com/aijobs como kaggle.com/datasets/aijobs/... dan 404. Ref obsoleto;
+    # necesita reemplazo verificado antes de confiar en main() para las 3 fuentes.
     "aijobs_net": "aijobs/global-salaries-in-ai-ml-data-science",
     # Se descarga a propósito aunque NO se use en el análisis: el notebook 01 lo
     # abre para mostrar por qué se descartó (§1.2 del spec). Vive bajo _descartado/
@@ -1430,9 +1435,7 @@ REFS = {
 }
 
 
-def verificar_no_sintetico(
-    df: pd.DataFrame, *, col_pais: str, col_salario: str
-) -> dict[str, Any]:
+def verificar_no_sintetico(df: pd.DataFrame, *, col_pais: str, col_salario: str) -> dict[str, Any]:
     """Un dataset real de vacantes es desigual por país y tiene salarios ausentes.
 
     Uniformidad + 100% de salarios presentes = generado.
@@ -1463,8 +1466,15 @@ def descargar(ref: str, destino: Path) -> Path:
     zip_path = destino / f"{ref.split('/')[1]}.zip"
     if not zip_path.exists():
         subprocess.run(
-            ["curl", "-sL", "-H", f"Authorization: Basic {auth}", "-o", str(zip_path),
-             f"https://www.kaggle.com/api/v1/datasets/download/{ref}"],
+            [
+                "curl",
+                "-sL",
+                "-H",
+                f"Authorization: Basic {auth}",
+                "-o",
+                str(zip_path),
+                f"https://www.kaggle.com/api/v1/datasets/download/{ref}",
+            ],
             check=True,
         )
     with zipfile.ZipFile(zip_path) as zf:
@@ -1492,8 +1502,10 @@ def map_mannacharya_frame(crudo: pd.DataFrame, *, snapshot_date: date) -> pd.Dat
     out["salary_max_raw"] = crudo["salary_max"]
     out["salary_currency"] = crudo["salary_currency"].fillna("USD")
     out["salary_period"] = crudo["salary_period"].map(_PERIODOS).fillna("año")
-    out["salary_is_predicted"] = False  # este dataset no modela sueldos
-    out["salary_observed"] = crudo["salary_min"].notna()
+    # dtype=object + bool de Python explícito: una columna bool nativa de pandas
+    # devuelve numpy.bool_ vía .loc, que falla comparaciones `is True`/`is False`.
+    out["salary_is_predicted"] = pd.Series(False, index=out.index, dtype=object)
+    out["salary_observed"] = crudo["salary_min"].notna().astype(object)
     out["description_text"] = crudo["description_text"]
     out["description_lang"] = "en"
     out["posted_date"] = pd.to_datetime(crudo["posted_date"], errors="coerce").dt.date

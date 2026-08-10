@@ -21,6 +21,12 @@ from src.utils.config import DATA_DIR
 
 REFS = {
     "kaggle_mannacharya": "mannacharya/ai-job-listings-bi-weekly-updated",
+    # ADVERTENCIA (hallado 2026-08-10 al correr Step 5 de la Task 7): este ref 403ea
+    # con {"code":403,"message":"Permission 'datasets.get' was denied"}. No es
+    # credenciales (mannacharya sí descarga con las mismas): el usuario de Kaggle
+    # "aijobs" no existe — GET /api/v1/datasets/list?user=aijobs devuelve [] y tanto
+    # kaggle.com/aijobs como kaggle.com/datasets/aijobs/... dan 404. Ref obsoleto;
+    # necesita reemplazo verificado antes de confiar en main() para las 3 fuentes.
     "aijobs_net": "aijobs/global-salaries-in-ai-ml-data-science",
     # Se descarga a propósito aunque NO se use en el análisis: el notebook 01 lo
     # abre para mostrar por qué se descartó (§1.2 del spec). Vive bajo _descartado/

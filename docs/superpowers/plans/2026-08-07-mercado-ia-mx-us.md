@@ -1237,7 +1237,9 @@ def ejecutar_corrida(
                 crudas = client.search_all(country.lower(), what=que, where=donde, max_pages=5)
             except Exception as exc:  # noqa: BLE001 - un hueco no debe tumbar la corrida
                 log.warning("Consulta fallida %s/%s/%s: %s", country, donde, que, exc)
-                fallidas.append({"country": country, "where": donde, "what": que, "error": str(exc)})
+                fallidas.append(
+                    {"country": country, "where": donde, "what": que, "error": str(exc)}
+                )
                 continue
             for cruda in crudas:
                 filas.append(map_adzuna_row(cruda, country=country, snapshot_date=snapshot_date))
@@ -1264,8 +1266,12 @@ def ejecutar_corrida(
         df.to_parquet(parquet, index=False)
 
     (carpeta / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
-    log.info("Snapshot %s: %s filas, %s observadas", snapshot_date, manifest["filas"],
-             manifest["filas_con_salario_observado"])
+    log.info(
+        "Snapshot %s: %s filas, %s observadas",
+        snapshot_date,
+        manifest["filas"],
+        manifest["filas_con_salario_observado"],
+    )
     return manifest
 
 

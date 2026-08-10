@@ -1,6 +1,23 @@
-data/raw/*
+# --- datos ---
+# data/raw/<fecha>/ (snapshots semanales de Adzuna, ~1.3 MB cada uno) SÍ se versiona: es
+# la serie de tiempo que este proyecto existe para acumular, y la ventana de la API de
+# Adzuna no permite volver a pedirla después. Por eso data/raw/ no se ignora en bloque
+# como antes — sólo lo que es de terceros y se puede volver a descargar:
+
+# ~258 MB, se re-obtienen en minutos con `python -m src.data.kaggle_sources`
+# (kaggle/ desde la API de Kaggle, aijobs_net/ desde el CSV público de ai-jobs.net).
+# Versionarlos no aporta nada, sólo infla el repo.
+data/raw/kaggle/
+data/raw/aijobs_net/
+
+# Intermedios (tipo de cambio, PPP): cachés regenerables, no se versionan.
 data/interim/*
+
+# `make build` reconstruye esto en segundos a partir de data/raw/, y vacantes.csv es
+# exactamente lo que scripts/publicar_kaggle.py sube a Kaggle: versionarlo aquí además
+# (28 MB por corrida) no gana nada que el propio dataset publicado no tenga ya.
 data/processed/*
+
 !data/**/.gitkeep
 .env
 __pycache__/

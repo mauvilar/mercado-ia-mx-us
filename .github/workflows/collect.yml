@@ -1,0 +1,75 @@
+name: Recolección semanal
+
+on:
+  schedule:
+    - cron: "0 13 * * 1"   # lunes 13:00 UTC = 7:00 CDMX
+  workflow_dispatch:
+
+jobs:
+  recolectar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instalar dependencias
+        run: uv sync --all-extras
+
+      - name: Recolectar (Adzuna)
+        env:
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+        # `mia-collect` (el entry point de [project.scripts]) no resuelve en este layout:
+        # el paquete se llama literalmente "src" y el .pth de la instalación editable no
+        # pone la raíz del proyecto en sys.path para un console script. Mismo arreglo que
+        # ya tiene el Makefile: invocar el módulo con `python -m`.
+        run: uv run python -m src.data.collect
+
+      - name: Configurar credenciales de Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        # src/data/kaggle_sources.py lee ~/.kaggle/kaggle.json a mano (no mira variables
+        # de entorno), así que hay que escribirlo antes de invocarlo. El paso de más abajo
+        # que publica en Kaggle no lo necesita: ese usa el CLI oficial, que sí detecta
+        # KAGGLE_USERNAME/KAGGLE_KEY del entorno directamente.
+        run: |
+          mkdir -p ~/.kaggle
+          printf '{"username":"%s","key":"%s"}' "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Descargar fuentes de Kaggle
+        # src/features/build.py lee data/raw/kaggle/kaggle_mannacharya/aijobs_dataset.csv
+        # cuando existe, y en un runner nuevo no existe todavía. Si una fuente está caída
+        # (o si los secrets de Kaggle no están configurados aún), esto no tumba el job:
+        # kaggle_sources.py atrapa el error por fuente y sigue con las demás.
+        run: uv run python -m src.data.kaggle_sources
+
+      - name: Reconstruir el dataset
+        run: uv run python -m src.features.build
+
+      - name: Pruebas
+        run: uv run pytest -q
+
+      - name: Commitear el snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Sólo data/raw: .gitignore ya excluye data/raw/kaggle/ y data/raw/aijobs_net/
+          # (de terceros, re-descargables), así que ni siquiera hace falta -f. data/processed/
+          # tampoco se versiona — se reconstruye con `make build` y es lo que se publica
+          # a Kaggle en el paso de abajo, no lo que vive en git.
+          git add data/raw
+          git diff --staged --quiet || git commit -m "data: snapshot $(date +%F)"
+          git push
+
+      - name: Publicar en Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: uv run python scripts/publicar_kaggle.py

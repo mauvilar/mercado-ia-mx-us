@@ -35,6 +35,12 @@ notebook = [
     "seaborn>=0.13,<0.14",
     "nbconvert>=7.16,<8.0",
 ]
+publish = [
+    # CLI oficial de Kaggle (scripts/publicar_kaggle.py). Fijado a la línea 2.2.x: es la
+    # versión cuyo flujo de subida en dos pasos (blob -> versión) se verificó contra la
+    # documentación antes de escribir el script; un salto de mayor podría cambiarlo.
+    "kaggle>=2.2,<3.0",
+]
 
 [project.scripts]
 mia-collect = "src.data.collect:main"

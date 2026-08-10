@@ -110,3 +110,35 @@ def test_el_salario_predicho_nunca_llega_a_las_columnas_normalizadas(_fx, _ppp, 
     )
     df = construir(raiz)
     assert pd.isna(df.iloc[0]["salary_annual_local"])
+
+
+@patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
+@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+def test_nunca_ingiere_el_parquet_del_dataset_descartado(_fx, _ppp, tmp_path):
+    """El dataset que el proyecto descarta por sintético trae su propio .parquet bajo
+    data/raw/kaggle/_descartado/. Un glob recursivo lo metería al análisis — y sin
+    snapshots de Adzuna sería el único encontrado, así que el pipeline "funcionaría"
+    con 51,932 filas inventadas."""
+    raiz = _snapshot(tmp_path, [_cruda()])
+    descartado = tmp_path / "raw" / "kaggle" / "_descartado"
+    descartado.mkdir(parents=True)
+    pd.DataFrame({"Job Title": ["AI Engineer"] * 5, "Salary Range": ["100k"] * 5}).to_parquet(
+        descartado / "ai_jobs_dataset_2026.parquet"
+    )
+
+    df = construir(raiz)
+
+    assert len(df) == 1, "se coló el parquet del dataset sintético"
+    assert "Job Title" not in df.columns
+
+
+@patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
+@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+def test_revienta_si_solo_existe_el_parquet_descartado(_fx, _ppp, tmp_path):
+    """Sin snapshots reales debe fallar ruidoso, nunca construir con lo sintético."""
+    descartado = tmp_path / "raw" / "kaggle" / "_descartado"
+    descartado.mkdir(parents=True)
+    pd.DataFrame({"Job Title": ["AI Engineer"] * 5}).to_parquet(descartado / "x.parquet")
+
+    with pytest.raises(FileNotFoundError, match="No hay snapshots"):
+        construir(tmp_path)

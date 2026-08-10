@@ -16,6 +16,7 @@ from typing import Any
 
 import pandas as pd
 
+from src.data.mapping import _canonizar_ciudad
 from src.data.schema import CANONICAL_COLUMNS
 from src.utils.config import DATA_DIR
 
@@ -105,7 +106,12 @@ def map_mannacharya_frame(crudo: pd.DataFrame, *, snapshot_date: date) -> pd.Dat
     out["title_norm"] = crudo["title"].astype(str).str.strip().str.lower()
     out["company"] = crudo["company"]
     out["country"] = crudo["country"].map(_PAISES)
-    out["city"] = crudo["city"]
+    # Canoniza ciudad y metro con el mismo mapa que Adzuna: si no, "Mountain View" y
+    # "Palo Alto" quedan sueltas en vez de plegarse a SF Bay Area, y los metros de
+    # EE.UU. salen subcontados.
+    canon = crudo["city"].fillna("").astype(str).map(lambda c: _canonizar_ciudad("US", [], c))
+    out["city"] = [x[0] if x[0] else c for x, c in zip(canon, crudo["city"], strict=True)]
+    out["metro"] = [x[1] for x in canon]
     out["salary_min_raw"] = crudo["salary_min"]
     out["salary_max_raw"] = crudo["salary_max"]
     out["salary_currency"] = crudo["salary_currency"].fillna("USD")
@@ -113,7 +119,12 @@ def map_mannacharya_frame(crudo: pd.DataFrame, *, snapshot_date: date) -> pd.Dat
     # dtype=object + bool de Python explícito: una columna bool nativa de pandas
     # devuelve numpy.bool_ vía .loc, que falla comparaciones `is True`/`is False`.
     out["salary_is_predicted"] = pd.Series(False, index=out.index, dtype=object)
-    out["salary_observed"] = crudo["salary_min"].notna().astype(object)
+    # Un sueldo de 0 no es un sueldo publicado: 26 filas de este dataset codifican
+    # "sin salario" como 0.0 en vez de nulo. Contarlas como observadas ensucia las
+    # medianas y revienta el modelo al tomar log(0).
+    out["salary_observed"] = (crudo["salary_min"].notna() & (crudo["salary_min"] > 0)).astype(
+        object
+    )
     out["description_text"] = crudo["description_text"]
     out["description_lang"] = "en"
     out["posted_date"] = pd.to_datetime(crudo["posted_date"], errors="coerce").dt.date

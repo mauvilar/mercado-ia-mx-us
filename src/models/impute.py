@@ -42,9 +42,16 @@ def preparar(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def particionar(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Entrenamiento = observados fuera de México. Hold-out = TODOS los observados de México."""
-    observados = preparar(df[df["salary_observed"].fillna(False).astype(bool)].copy())
-    observados = observados[observados[TARGET].notna()]
+    """Entrenamiento = observados fuera de México. Hold-out = TODOS los observados de México.
+
+    Se restringe a vacantes de IA (`tier` distinto de "fuera") porque el modelo imputa
+    salarios de IA. Sin ese filtro el hold-out mexicano se llena de ruido del buscador de
+    Adzuna — maestras de matemáticas y ejecutivos de canal PYME — y el veredicto de
+    publicación se emitiría contra la población equivocada.
+    """
+    de_ia = df[df["tier"].isin(["nucleo", "anillo"])]
+    observados = preparar(de_ia[de_ia["salary_observed"].fillna(False).astype(bool)].copy())
+    observados = observados[observados[TARGET].notna() & (observados[TARGET] > 0)]
     train = observados[observados["country"] != "MX"].reset_index(drop=True)
     holdout = observados[observados["country"] == "MX"].reset_index(drop=True)
     return train, holdout

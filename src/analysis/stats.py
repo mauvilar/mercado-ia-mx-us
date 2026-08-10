@@ -65,5 +65,7 @@ def resumir_por(
     # dtype=object explícito: pandas infiere bool nativo de numpy para una columna
     # de puros bool de Python, y ese numpy.bool_ falla comparaciones `is True`/
     # `is False` en los tests (mismo defecto que en src/data/kaggle_sources.py).
-    resumen["suficiente"] = resumen["suficiente"].astype(object)
+    # dtype bool de verdad, no object: con object, `~df["suficiente"]` hace NOT bitwise
+    # (~False == -1) en vez de negación lógica, y pandas lo lee como selector de columna.
+    resumen["suficiente"] = resumen["suficiente"].astype(bool)
     return resumen

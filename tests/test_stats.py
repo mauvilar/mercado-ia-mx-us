@@ -35,8 +35,10 @@ def test_resumir_por_marca_los_grupos_con_n_insuficiente():
 
     cdmx = out[out["city"] == "CDMX"].iloc[0]
     qro = out[out["city"] == "Querétaro"].iloc[0]
-    assert cdmx["suficiente"] is True
-    assert qro["suficiente"] is False
+    assert cdmx["suficiente"]
+    assert not qro["suficiente"]
+    # `~` debe negar lógicamente, no bit a bit
+    assert len(out[~out["suficiente"]]) == 1
     assert qro["n"] == 12
     assert pd.isna(qro["mediana"])  # no se reporta un número que no se sostiene
 
@@ -50,4 +52,4 @@ def test_resumir_por_ignora_los_nulos_al_contar():
     )
     out = resumir_por(df, ["city"], valor="salary_annual_usd_ppp", min_n=30)
     assert out.iloc[0]["n"] == 20
-    assert out.iloc[0]["suficiente"] is False
+    assert not out.iloc[0]["suficiente"]

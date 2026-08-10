@@ -1795,7 +1795,7 @@ def clasificar(title: str, *, skills: list[str]) -> str:
 - [ ] **Step 4: Correr el test y verificar que pasa**
 
 Run: `uv run pytest tests/test_taxonomy.py -v`
-Expected: 7 passed
+Expected: 9 passed
 
 - [ ] **Step 5: Commit**
 

@@ -3134,16 +3134,23 @@ def _corpus(n_us=400, n_mx=60, seed=0):
         for _ in range(n):
             sen = rng.choice(["jr", "mid", "sr"])
             mult = {"jr": 0.7, "mid": 1.0, "sr": 1.4}[sen]
-            filas.append({
-                "country": pais, "seniority": sen, "tier": "nucleo",
-                "metro": "SF Bay Area" if pais == "US" else "Valle de México",
-                "category": "IT Jobs", "title_norm": "ai engineer",
-                "is_remote": False, "remote_scope": "local",
-                "company_posting_count": 3, "company_is_multinational": True,
-                "skills": ["llm", "pytorch"],
-                "salary_annual_usd_ppp": base * mult * rng.normal(1, 0.12),
-                "salary_observed": True,
-            })
+            filas.append(
+                {
+                    "country": pais,
+                    "seniority": sen,
+                    "tier": "nucleo",
+                    "metro": "SF Bay Area" if pais == "US" else "Valle de México",
+                    "category": "IT Jobs",
+                    "title_norm": "ai engineer",
+                    "is_remote": False,
+                    "remote_scope": "local",
+                    "company_posting_count": 3,
+                    "company_is_multinational": True,
+                    "skills": ["llm", "pytorch"],
+                    "salary_annual_usd_ppp": base * mult * rng.normal(1, 0.12),
+                    "salary_observed": True,
+                }
+            )
     return pd.DataFrame(filas)
 
 
@@ -3219,7 +3226,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
 CATEGORICAS = [
-    "country", "seniority", "tier", "metro", "category", "title_norm", "remote_scope",
+    "country",
+    "seniority",
+    "tier",
+    "metro",
+    "category",
+    "title_norm",
+    "remote_scope",
 ]
 NUMERICAS = ["company_posting_count"]
 BOOLEANAS = ["is_remote", "company_is_multinational"]
@@ -3265,15 +3278,30 @@ class ModeloSalarial:
 
 def entrenar(train: pd.DataFrame, *, seed: int = 42) -> ModeloSalarial:
     pre = ColumnTransformer(
-        [("cat", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1), CATEGORICAS)],
+        [
+            (
+                "cat",
+                OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1),
+                CATEGORICAS,
+            )
+        ],
         remainder="passthrough",
     )
-    pipeline = Pipeline([
-        ("pre", pre),
-        ("gbm", HistGradientBoostingRegressor(
-            max_depth=6, learning_rate=0.06, max_iter=400,
-            l2_regularization=1.0, random_state=seed)),
-    ])
+    pipeline = Pipeline(
+        [
+            ("pre", pre),
+            (
+                "gbm",
+                HistGradientBoostingRegressor(
+                    max_depth=6,
+                    learning_rate=0.06,
+                    max_iter=400,
+                    l2_regularization=1.0,
+                    random_state=seed,
+                ),
+            ),
+        ]
+    )
     pipeline.fit(train[FEATURES], np.log(train[TARGET]))
     return ModeloSalarial(pipeline)
 ```
@@ -3309,14 +3337,22 @@ def baseline_pais_seniority(train: pd.DataFrame, objetivo: pd.DataFrame) -> np.n
 
 
 def evaluar_holdout_mx(
-    modelo: ModeloSalarial, train: pd.DataFrame, holdout: pd.DataFrame,
-    *, umbral_mdape: float = UMBRAL_MDAPE,
+    modelo: ModeloSalarial,
+    train: pd.DataFrame,
+    holdout: pd.DataFrame,
+    *,
+    umbral_mdape: float = UMBRAL_MDAPE,
 ) -> dict[str, Any]:
     if holdout.empty:
         return {
-            "n_holdout": 0, "mdape_modelo": float("nan"), "mdape_baseline": float("nan"),
-            "supera_baseline": False, "publicable": False,
-            "veredicto": "Sin salarios mexicanos observados: no hay con qué validar. No se publica.",
+            "n_holdout": 0,
+            "mdape_modelo": float("nan"),
+            "mdape_baseline": float("nan"),
+            "supera_baseline": False,
+            "publicable": False,
+            "veredicto": (
+                "Sin salarios mexicanos observados: no hay con qué validar. No se publica."
+            ),
         }
 
     real = holdout[TARGET].to_numpy(dtype=float)
@@ -3343,8 +3379,12 @@ def evaluar_holdout_mx(
         )
 
     return {
-        "n_holdout": int(len(holdout)), "mdape_modelo": e_modelo, "mdape_baseline": e_baseline,
-        "supera_baseline": supera, "publicable": publicable, "veredicto": veredicto,
+        "n_holdout": int(len(holdout)),
+        "mdape_modelo": e_modelo,
+        "mdape_baseline": e_baseline,
+        "supera_baseline": supera,
+        "publicable": publicable,
+        "veredicto": veredicto,
     }
 ```
 

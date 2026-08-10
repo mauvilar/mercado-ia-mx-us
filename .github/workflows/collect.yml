@@ -62,6 +62,16 @@ jobs:
       - name: Pruebas
         run: uv run pytest -q
 
+      # Publicar va ANTES de commitear a propósito. Son cosas independientes, y si el
+      # push de git falla por una carrera con otro commit, no queremos que el dataset
+      # deje de actualizarse en silencio. Las pruebas siguen siendo la compuerta de
+      # ambos: nada se publica si el paso anterior falló.
+      - name: Publicar en Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: uv run python scripts/publicar_kaggle.py
+
       - name: Commitear el snapshot
         run: |
           git config user.name  "github-actions[bot]"
@@ -69,13 +79,17 @@ jobs:
           # Sólo data/raw: .gitignore ya excluye data/raw/kaggle/ y data/raw/aijobs_net/
           # (de terceros, re-descargables), así que ni siquiera hace falta -f. data/processed/
           # tampoco se versiona — se reconstruye con `make build` y es lo que se publica
-          # a Kaggle en el paso de abajo, no lo que vive en git.
+          # a Kaggle en el paso de arriba, no lo que vive en git.
           git add data/raw
-          git diff --staged --quiet || git commit -m "data: snapshot $(date +%F)"
-          git push
-
-      - name: Publicar en Kaggle
-        env:
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
-        run: uv run python scripts/publicar_kaggle.py
+          git diff --staged --quiet && echo "Sin snapshot nuevo que commitear." && exit 0
+          git commit -m "data: snapshot $(date +%F)"
+          # Cualquier push a main entre el checkout y este momento tumbaba la corrida.
+          # Se reintenta rebasando sobre lo que haya llegado: el snapshot va en un archivo
+          # con fecha propia, así que nunca choca de contenido con otro commit.
+          for intento in 1 2 3; do
+            git push && exit 0
+            echo "Push rechazado (intento $intento), rebasando sobre origin/main…"
+            git pull --rebase --autostash origin main
+          done
+          echo "::error::No se pudo empujar el snapshot tras 3 intentos."
+          exit 1

@@ -2265,10 +2265,12 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
 
+from src.data.kaggle_sources import map_mannacharya_frame
 from src.data.schema import CANONICAL_COLUMNS, validate_frame
 from src.features.dedupe import deduplicar
 from src.features.extract import extraer_seniority, extraer_skills
@@ -2278,9 +2280,32 @@ from src.utils.config import DATA_DIR
 from src.utils.logging import setup_logging
 
 MULTINACIONALES = {
-    "mastercard", "amazon", "google", "microsoft", "ibm", "oracle", "sap", "accenture",
-    "deloitte", "pwc", "kpmg", "ey", "nvidia", "intel", "meta", "apple", "salesforce",
-    "hp", "dell", "cisco", "bosch", "siemens", "ge", "bbva", "santander", "citi",
+    "mastercard",
+    "amazon",
+    "google",
+    "microsoft",
+    "ibm",
+    "oracle",
+    "sap",
+    "accenture",
+    "deloitte",
+    "pwc",
+    "kpmg",
+    "ey",
+    "nvidia",
+    "intel",
+    "meta",
+    "apple",
+    "salesforce",
+    "hp",
+    "dell",
+    "cisco",
+    "bosch",
+    "siemens",
+    "ge",
+    "bbva",
+    "santander",
+    "citi",
 }
 
 # Señales de que un remoto publicado en México es en realidad para un equipo de EE.UU.
@@ -2318,13 +2343,38 @@ def _punto_medio(fila: pd.Series) -> float | None:
     return (float(lo) + float(hi)) / 2
 
 
-def construir(raiz_datos: Path) -> pd.DataFrame:
-    parquets = sorted((raiz_datos / "raw").rglob("*.parquet"))
-    if not parquets:
-        raise FileNotFoundError(f"No hay snapshots en {raiz_datos / 'raw'}. Corre `make collect`.")
+def _cargar_snapshots(raiz_datos: Path) -> list[pd.DataFrame]:
+    """Sólo los snapshots que escribió el colector: data/raw/<fecha>/adzuna.parquet.
 
-    df = pd.concat([pd.read_parquet(p) for p in parquets], ignore_index=True)
-    log.info("Cargadas %s filas de %s snapshots", len(df), len(parquets))
+    Deliberadamente NO se hace rglob("*.parquet") sobre data/raw/: ahí abajo también
+    viven las descargas de Kaggle, y el dataset descartado por sintético trae su propio
+    .parquet de 51,932 filas. Un glob recursivo lo metería al análisis — justo el dato
+    que este proyecto existe para rechazar. Peor aún, sin snapshots de Adzuna sería el
+    único parquet encontrado y el pipeline "funcionaría" con datos inventados.
+    """
+    return [pd.read_parquet(p) for p in sorted(raiz_datos.glob("raw/*/adzuna.parquet"))]
+
+
+def _cargar_mannacharya(raiz_datos: Path, snapshot_date: date) -> list[pd.DataFrame]:
+    """Dataset real de Kaggle que aporta profundidad de EE.UU. (§4 del spec). Opcional."""
+    csv = raiz_datos / "raw" / "kaggle" / "kaggle_mannacharya" / "aijobs_dataset.csv"
+    if not csv.exists():
+        log.info("Sin %s: se construye sólo con snapshots de Adzuna.", csv.name)
+        return []
+    crudo = pd.read_csv(csv, low_memory=False)
+    log.info("Cargadas %s filas de kaggle_mannacharya", len(crudo))
+    return [map_mannacharya_frame(crudo, snapshot_date=snapshot_date)]
+
+
+def construir(raiz_datos: Path) -> pd.DataFrame:
+    marcos = _cargar_snapshots(raiz_datos)
+    if not marcos:
+        raise FileNotFoundError(f"No hay snapshots en {raiz_datos / 'raw'}. Corre `make collect`.")
+    n_snapshots = len(marcos)
+    marcos += _cargar_mannacharya(raiz_datos, date.today())
+
+    df = pd.concat(marcos, ignore_index=True)
+    log.info("Cargadas %s filas de %s snapshots", len(df), n_snapshots)
 
     # --- extracción sobre el texto ---
     texto = df["title_raw"].fillna("") + " " + df["description_text"].fillna("")

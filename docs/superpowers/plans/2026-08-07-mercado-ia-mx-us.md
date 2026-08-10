@@ -1650,17 +1650,19 @@ def a_ppp(monto_local: float | None, pais: str, factores: dict[str, float]) -> f
 
 def obtener_fx_usd_mxn() -> float:
     """Tipo de cambio del día vía Frankfurter (BCE, sin llave)."""
-    r = requests.get("https://api.frankfurter.app/latest", params={"from": "USD", "to": "MXN"},
-                     timeout=20)
+    r = requests.get(
+        "https://api.frankfurter.app/latest", params={"from": "USD", "to": "MXN"}, timeout=20
+    )
     r.raise_for_status()
     return float(r.json()["rates"]["MXN"])
 
 
 def obtener_factores_ppp() -> dict[str, float]:
     """PA.NUS.PPP del Banco Mundial, año más reciente disponible, para MEX y USA."""
+    params: dict[str, Any] = {"format": "json", "date": "2022:2026", "per_page": 100}
     r = requests.get(
         "https://api.worldbank.org/v2/country/MEX;USA/indicator/PA.NUS.PPP",
-        params={"format": "json", "date": "2022:2026", "per_page": 100},
+        params=params,
         timeout=30,
     )
     r.raise_for_status()

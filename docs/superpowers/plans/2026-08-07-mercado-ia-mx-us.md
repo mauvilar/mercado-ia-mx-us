@@ -138,11 +138,11 @@ probe: ## Compuerta día 0: medir cobertura salarial de Adzuna MX
 
 .PHONY: collect
 collect: ## Una corrida de recolección -> data/raw/
-	$(RUN) mia-collect
+	$(RUN) python -m src.data.collect
 
 .PHONY: build
 build: ## data/raw/ -> data/processed/vacantes.parquet
-	$(RUN) mia-build
+	$(RUN) python -m src.features.build
 
 .PHONY: test
 test: ## Correr las pruebas
@@ -3565,10 +3565,10 @@ jobs:
         env:
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
-        run: uv run mia-collect
+        run: uv run python -m src.data.collect
 
       - name: Reconstruir el dataset
-        run: uv run mia-build
+        run: uv run python -m src.features.build
 
       - name: Pruebas
         run: uv run pytest -q

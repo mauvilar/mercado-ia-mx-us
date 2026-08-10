@@ -20,11 +20,11 @@ probe: ## Compuerta día 0: medir cobertura salarial de Adzuna MX
 
 .PHONY: collect
 collect: ## Una corrida de recolección -> data/raw/
-	$(RUN) mia-collect
+	$(RUN) python -m src.data.collect
 
 .PHONY: build
 build: ## data/raw/ -> data/processed/vacantes.parquet
-	$(RUN) mia-build
+	$(RUN) python -m src.features.build
 
 .PHONY: test
 test: ## Correr las pruebas

@@ -2504,10 +2504,13 @@ def test_mediana_ci_con_muestra_vacia_devuelve_nan():
 
 def test_resumir_por_marca_los_grupos_con_n_insuficiente():
     """Regla dura del spec §6: n < 30 no se grafica, se marca."""
-    df = pd.DataFrame({
-        "city": ["CDMX"] * 40 + ["Querétaro"] * 12,
-        "salary_annual_usd_ppp": list(np.linspace(50000, 90000, 40)) + list(np.linspace(40000, 60000, 12)),
-    })
+    df = pd.DataFrame(
+        {
+            "city": ["CDMX"] * 40 + ["Querétaro"] * 12,
+            "salary_annual_usd_ppp": list(np.linspace(50000, 90000, 40))
+            + list(np.linspace(40000, 60000, 12)),
+        }
+    )
     out = resumir_por(df, ["city"], valor="salary_annual_usd_ppp", min_n=30)
 
     cdmx = out[out["city"] == "CDMX"].iloc[0]
@@ -2519,10 +2522,12 @@ def test_resumir_por_marca_los_grupos_con_n_insuficiente():
 
 
 def test_resumir_por_ignora_los_nulos_al_contar():
-    df = pd.DataFrame({
-        "city": ["CDMX"] * 50,
-        "salary_annual_usd_ppp": [60000.0] * 20 + [None] * 30,
-    })
+    df = pd.DataFrame(
+        {
+            "city": ["CDMX"] * 50,
+            "salary_annual_usd_ppp": [60000.0] * 20 + [None] * 30,
+        }
+    )
     out = resumir_por(df, ["city"], valor="salary_annual_usd_ppp", min_n=30)
     assert out.iloc[0]["n"] == 20
     assert out.iloc[0]["suficiente"] is False
@@ -2588,11 +2593,23 @@ def resumir_por(
             med = lo = hi = q1 = q3 = np.nan
 
         filas.append(
-            {**dict(zip(grupos, llaves, strict=True)),
-             "n": n, "suficiente": suficiente,
-             "mediana": med, "ic_inf": lo, "ic_sup": hi, "q1": q1, "q3": q3}
+            {
+                **dict(zip(grupos, llaves, strict=True)),
+                "n": n,
+                "suficiente": suficiente,
+                "mediana": med,
+                "ic_inf": lo,
+                "ic_sup": hi,
+                "q1": q1,
+                "q3": q3,
+            }
         )
-    return pd.DataFrame(filas).sort_values("n", ascending=False).reset_index(drop=True)
+    resumen = pd.DataFrame(filas).sort_values("n", ascending=False).reset_index(drop=True)
+    # dtype=object explícito: pandas infiere bool nativo de numpy para una columna
+    # de puros bool de Python, y ese numpy.bool_ falla comparaciones `is True`/
+    # `is False` en los tests (mismo defecto que en src/data/kaggle_sources.py).
+    resumen["suficiente"] = resumen["suficiente"].astype(object)
+    return resumen
 ```
 
 - [ ] **Step 4: Correr el test y verificar que pasa**

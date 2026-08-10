@@ -2201,11 +2201,20 @@ def test_remote_scope_detecta_el_arbitraje_hacia_estados_unidos(_fx, _ppp, tmp_p
     un equipo en EE.UU. es la señal de arbitraje."""
     raiz = _snapshot(
         tmp_path,
-        [_cruda(posting_id="a", is_remote=True,
-                description_text="Remoto desde México para un equipo en United States, pago en USD"),
-         _cruda(posting_id="b", title_norm="ml engineer", is_remote=True,
-                description_text="Trabajo remoto desde cualquier parte de la república"),
-         _cruda(posting_id="c", title_norm="ai engineer", is_remote=False)],
+        [
+            _cruda(
+                posting_id="a",
+                is_remote=True,
+                description_text="Remoto desde México para un equipo en United States, pago en USD",
+            ),
+            _cruda(
+                posting_id="b",
+                title_norm="ml engineer",
+                is_remote=True,
+                description_text="Trabajo remoto desde cualquier parte de la república",
+            ),
+            _cruda(posting_id="c", title_norm="ai engineer", is_remote=False),
+        ],
     )
     df = construir(raiz).set_index("posting_id")
     assert df.loc["a", "remote_scope"] == "us_desde_mx"
@@ -2218,9 +2227,11 @@ def test_remote_scope_detecta_el_arbitraje_hacia_estados_unidos(_fx, _ppp, tmp_p
 def test_calcula_el_conteo_de_vacantes_por_empresa(_fx, _ppp, tmp_path):
     raiz = _snapshot(
         tmp_path,
-        [_cruda(posting_id="a", title_norm="ai engineer"),
-         _cruda(posting_id="b", title_norm="ml engineer"),
-         _cruda(posting_id="c", company="Globex", title_norm="ai engineer")],
+        [
+            _cruda(posting_id="a", title_norm="ai engineer"),
+            _cruda(posting_id="b", title_norm="ml engineer"),
+            _cruda(posting_id="c", company="Globex", title_norm="ai engineer"),
+        ],
     )
     df = construir(raiz)
     acme = df[df["company"] == "Acme"]
@@ -2333,7 +2344,9 @@ def construir(raiz_datos: Path) -> pd.DataFrame:
     log.info("FX USD/MXN=%.2f  PPP=%s", fx, ppp)
 
     observado = df["salary_observed"].fillna(False).astype(bool)
-    medio = df.apply(_punto_medio, axis=1).where(observado)
+    # pandas-stubs no tiene overload para un callable que devuelve `float | None`
+    # (sólo `float | NAType`): es un hueco de los stubs, no un error real.
+    medio = df.apply(_punto_medio, axis=1).where(observado)  # type: ignore[call-overload]
     df["salary_annual_local"] = [
         a_anual(m, p) if pd.notna(m) else None
         for m, p in zip(medio, df["salary_period"].fillna("año"), strict=True)
@@ -2386,7 +2399,7 @@ if __name__ == "__main__":
 - [ ] **Step 4: Correr el test y verificar que pasa**
 
 Run: `uv run pytest tests/test_build.py -v`
-Expected: 3 passed
+Expected: 4 passed
 
 - [ ] **Step 5: Correr el pipeline completo y verificar la suite**
 

@@ -2003,10 +2003,12 @@ def test_colapsa_la_misma_vacante_de_dos_fuentes():
 
 
 def test_conserva_la_fila_con_salario_observado():
-    df = pd.DataFrame([
-        _fila(posting_id="a", salary_observed=False),
-        _fila(posting_id="b", salary_observed=True, salary_annual_local=600000.0),
-    ])
+    df = pd.DataFrame(
+        [
+            _fila(posting_id="a", salary_observed=False),
+            _fila(posting_id="b", salary_observed=True, salary_annual_local=600000.0),
+        ]
+    )
     out = deduplicar(df)
     assert len(out) == 1
     assert out.iloc[0]["salary_observed"]

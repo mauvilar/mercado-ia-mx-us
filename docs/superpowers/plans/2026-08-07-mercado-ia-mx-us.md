@@ -1421,18 +1421,17 @@ from src.utils.config import DATA_DIR
 
 REFS = {
     "kaggle_mannacharya": "mannacharya/ai-job-listings-bi-weekly-updated",
-    # ADVERTENCIA (hallado 2026-08-10 al correr Step 5 de la Task 7): este ref 403ea
-    # con {"code":403,"message":"Permission 'datasets.get' was denied"}. No es
-    # credenciales (mannacharya sí descarga con las mismas): el usuario de Kaggle
-    # "aijobs" no existe — GET /api/v1/datasets/list?user=aijobs devuelve [] y tanto
-    # kaggle.com/aijobs como kaggle.com/datasets/aijobs/... dan 404. Ref obsoleto;
-    # necesita reemplazo verificado antes de confiar en main() para las 3 fuentes.
-    "aijobs_net": "aijobs/global-salaries-in-ai-ml-data-science",
     # Se descarga a propósito aunque NO se use en el análisis: el notebook 01 lo
     # abre para mostrar por qué se descartó (§1.2 del spec). Vive bajo _descartado/
     # para que nadie lo confunda con una fuente válida.
     "_descartado": "m0sm71/ai-jobs-dataset-2026",
 }
+
+# ai-jobs.net no se toma de Kaggle: el ref que traía el spec
+# (aijobs/global-salaries-in-ai-ml-data-science) está muerto — ese usuario de Kaggle
+# no existe y la API responde 403. La fuente viva es el repo del propio proyecto,
+# que publica el CSV completo en dominio público y sin autenticación.
+AIJOBS_URL = "https://raw.githubusercontent.com/foorilla/ai-jobs-net-salaries/main/salaries.csv"
 
 
 def verificar_no_sintetico(df: pd.DataFrame, *, col_pais: str, col_salario: str) -> dict[str, Any]:
@@ -1482,6 +1481,15 @@ def descargar(ref: str, destino: Path) -> Path:
     return destino
 
 
+def descargar_aijobs(destino: Path) -> Path:
+    """Baja el CSV de ai-jobs.net desde su repo público. Sin autenticación."""
+    destino.mkdir(parents=True, exist_ok=True)
+    csv_path = destino / "salaries.csv"
+    if not csv_path.exists():
+        subprocess.run(["curl", "-sL", "-o", str(csv_path), AIJOBS_URL], check=True)
+    return csv_path
+
+
 _PAISES = {"United States": "US", "USA": "US", "US": "US", "Mexico": "MX", "México": "MX"}
 _PERIODOS = {"year": "año", "yearly": "año", "month": "mes", "hour": "hora"}
 
@@ -1513,9 +1521,19 @@ def map_mannacharya_frame(crudo: pd.DataFrame, *, snapshot_date: date) -> pd.Dat
 
 
 def main() -> None:
+    """Una fuente caída no debe tumbar la descarga de las demás."""
     for nombre, ref in REFS.items():
-        descargar(ref, DATA_DIR / "raw" / "kaggle" / nombre)
-        print(f"✅ {nombre}: {ref}")
+        try:
+            descargar(ref, DATA_DIR / "raw" / "kaggle" / nombre)
+            print(f"✅ {nombre}: {ref}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"❌ {nombre}: {ref} — {exc}")
+
+    try:
+        ruta = descargar_aijobs(DATA_DIR / "raw" / "aijobs_net")
+        print(f"✅ aijobs_net: {ruta}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"❌ aijobs_net: {AIJOBS_URL} — {exc}")
 
 
 if __name__ == "__main__":

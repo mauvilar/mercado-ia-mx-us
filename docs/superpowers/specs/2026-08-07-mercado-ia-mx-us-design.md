@@ -91,7 +91,7 @@ La opacidad salarial mexicana no se trata como obstáculo sino como segundo obje
 |---|---|---|---|
 | **Adzuna API** (`mx`, `us`) | Primaria | API key gratuita | Mismo esquema para ambos países, nivel ciudad, refresco semanal. Endpoints `search`, `salary histogram`, `salary history` |
 | **`mannacharya/ai-job-listings-bi-weekly-updated`** | Profundidad US | Kaggle API, CC0 | 7,066 vacantes reales, 19 % con salario, descripción completa para extraer skills |
-| **`aijobs/global-salaries-in-ai-ml-data-science`** | Serie de tiempo | Kaggle API, CC0 | Histórico 2021→2026 a nivel país; provee el eje temporal que las vacantes vivas no tienen |
+| **ai-jobs.net** (`foorilla/ai-jobs-net-salaries`, CSV en GitHub) | Serie de tiempo | HTTP público, CC0 | 151,445 filas 2020→2025 a nivel país; provee el eje temporal que las vacantes vivas no tienen. **Verificado el 2026-08-10:** el ref de Kaggle que traía este spec estaba muerto (ese usuario no existe); la fuente viva es el repo del proyecto. Trae 113 filas de México, 102 de ellas 2024–2025 — autorreportadas y con sesgo de selección hacia empresas internacionales, así que sirven de ancla y techo, no de sustituto de la recolección por ciudad |
 | **Conector Indeed (MCP)** | Validación | Ya autenticado | Muestreo puntual para verificar que la cobertura de Adzuna es real |
 | **Factor PPP, Banco Mundial** (`PA.NUS.PPP`) | Normalización | API abierta | Convierte la comparación MX/US en algo defendible |
 | **OCC / Computrabajo** | Refuerzo condicional | Sólo si el día 0 lo exige, y sólo si sus términos lo permiten | Cobertura extra de salarios MX publicados |

@@ -1909,7 +1909,15 @@ def _lexico() -> list[tuple[str, re.Pattern[str]]]:
     salida: list[tuple[str, re.Pattern[str]]] = []
     for grupo in ("ia_aplicada", "soporte"):
         for skill, alias in lexico[grupo].items():
-            patron = "|".join(rf"\b{re.escape(a)}\b" for a in alias)
+            # Cada palabra admite plural simple (-s/-es): las descripciones reales
+            # dicen "modelos de lenguaje" o "bases de datos vectoriales", no la
+            # forma singular exacta que vive en el YAML.
+            patron = "|".join(
+                r"\b"
+                + r"\s+".join(rf"{re.escape(palabra)}(?:es|s)?" for palabra in a.split())
+                + r"\b"
+                for a in alias
+            )
             salida.append((skill, re.compile(patron, re.I)))
     return salida
 

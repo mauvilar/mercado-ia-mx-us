@@ -8,7 +8,7 @@
       "country": "US",
       "where": "New York",
       "what": "AI engineer",
-      "error": "502 Server Error: Bad Gateway for url: https://api.adzuna.com/v1/api/jobs/us/search/2?app_id=307b94d8&app_key=8bcf56d8c85924a86645abc1762dac56&results_per_page=50&what=AI+engineer&where=New+York&max_days_old=60&content-type=application%2Fjson"
+      "error": "502 Server Error: Bad Gateway for url: https://api.adzuna.com/v1/api/jobs/us/search/2?app_id=<redactado>&app_key=<redactado>&results_per_page=50&what=AI+engineer&where=New+York&max_days_old=60&content-type=application%2Fjson"
     }
   ],
   "tasa_exito": 0.9907

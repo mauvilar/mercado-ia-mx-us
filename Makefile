@@ -19,8 +19,20 @@ probe: ## Compuerta día 0: medir cobertura salarial de Adzuna MX
 	$(RUN) python -m src.data.probe
 
 .PHONY: collect
-collect: ## Una corrida de recolección -> data/raw/
-	$(RUN) python -m src.data.collect
+collect: ## Una corrida completa (Adzuna + fuentes anexas) -> data/raw/
+	$(RUN) python -m src.data.collect todo
+
+.PHONY: collect-analisis
+collect-analisis: ## Sólo México y EE.UU. en Adzuna: la corrida semanal barata
+	$(RUN) python -m src.data.collect analisis
+
+.PHONY: collect-calibracion
+collect-calibracion: ## Sólo los países de calibración. Se levanta una vez, no cada semana
+	$(RUN) python -m src.data.collect calibracion
+
+.PHONY: collect-fuentes
+collect-fuentes: ## Sólo USAJOBS y Jooble, sin gastar cuota de Adzuna
+	$(RUN) python -m src.data.collect fuentes
 
 .PHONY: build
 build: ## data/raw/ -> data/processed/vacantes.parquet

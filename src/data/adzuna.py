@@ -33,10 +33,14 @@ class AdzunaClient:
             "app_key": self.app_key,
             "results_per_page": self.results_per_page,
             "what": what,
-            "where": where,
             "max_days_old": max_days_old,
             "content-type": "application/json",
         }
+        # `where` vacío = búsqueda nacional. Es como se recolectan los países de
+        # calibración: no interesa su detalle por ciudad, sólo su nivel salarial.
+        # Mandar where="" explícitamente devuelve cero resultados, así que se omite.
+        if where:
+            params["where"] = where
         espera = 2
         for intento in range(MAX_REINTENTOS):
             resp = requests.get(f"{BASE}/{country}/search/{page}", params=params, timeout=30)

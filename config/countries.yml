@@ -1,0 +1,111 @@
+# Registro de países. El campo `rol` decide para qué sirve cada uno y es la línea
+# que impide que abrir el corpus a más países contamine los hallazgos publicados.
+#
+#   analisis     El país es objeto de estudio. Malla completa ciudad por ciudad
+#                (config/cities.yml), y sus cifras se publican en los notebooks.
+#
+#   calibracion  El país entra SÓLO para que `country` deje de ser una constante
+#                durante el entrenamiento del modelo de imputación. Malla acotada
+#                (una consulta nacional, pocas páginas), sin detalle de metro, y
+#                sus medianas NO se reportan como hallazgo del proyecto.
+#
+# Por qué existe el rol de calibración: el notebook 04 documenta que el modelo erró
+# 958 % contra México porque `country` tuvo un único valor ("US") en el entrenamiento
+# y nunca tuvo con qué aprender un desnivel entre países. Un país de calibración no
+# aporta vacantes que analizar; aporta la varianza que le faltaba a esa columna.
+# Por eso la lista busca cubrir el rango de niveles de precio, de India y Sudáfrica
+# hasta Suiza, y no los mercados más grandes.
+#
+# Campos:
+#   adzuna    código de país de la API de Adzuna
+#   wb        código ISO3 del Banco Mundial, para pedir su factor PA.NUS.PPP
+#   currency  moneda local en que Adzuna devuelve los importes de ese país
+#   rol       analisis | calibracion
+#   where     zona de búsqueda para los países de calibración (vacío = nacional)
+
+MX:
+  adzuna: mx
+  wb: MEX
+  currency: MXN
+  rol: analisis
+
+US:
+  adzuna: us
+  wb: USA
+  currency: USD
+  rol: analisis
+
+# ── Calibración ──────────────────────────────────────────────────────────────
+# Ordenados de menor a mayor nivel de precio. Los cuatro primeros son los que más
+# importan: son los que están cerca del nivel mexicano y le enseñan al modelo que
+# existe vida salarial por debajo de Estados Unidos.
+
+IN:
+  adzuna: in
+  wb: IND
+  currency: INR
+  rol: calibracion
+  where: ""
+
+ZA:
+  adzuna: za
+  wb: ZAF
+  currency: ZAR
+  rol: calibracion
+  where: ""
+
+BR:
+  adzuna: br
+  wb: BRA
+  currency: BRL
+  rol: calibracion
+  where: ""
+
+PL:
+  adzuna: pl
+  wb: POL
+  currency: PLN
+  rol: calibracion
+  where: ""
+
+ES:
+  adzuna: es
+  wb: ESP
+  currency: EUR
+  rol: calibracion
+  where: ""
+
+IT:
+  adzuna: it
+  wb: ITA
+  currency: EUR
+  rol: calibracion
+  where: ""
+
+GB:
+  adzuna: gb
+  wb: GBR
+  currency: GBP
+  rol: calibracion
+  where: ""
+
+CA:
+  adzuna: ca
+  wb: CAN
+  currency: CAD
+  rol: calibracion
+  where: ""
+
+DE:
+  adzuna: de
+  wb: DEU
+  currency: EUR
+  rol: calibracion
+  where: ""
+
+CH:
+  adzuna: ch
+  wb: CHE
+  currency: CHF
+  rol: calibracion
+  where: ""

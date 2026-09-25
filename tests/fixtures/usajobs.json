@@ -1,0 +1,34 @@
+{
+  "MatchedObjectId": "832145600",
+  "MatchedObjectDescriptor": {
+    "PositionID": "ST-12345678-26-AB",
+    "PositionTitle": "Data Scientist (Machine Learning)",
+    "PositionURI": "https://www.usajobs.gov/job/832145600",
+    "OrganizationName": "Census Bureau",
+    "DepartmentName": "Department of Commerce",
+    "PositionLocation": [
+      {
+        "LocationName": "Seattle, Washington",
+        "CountryCode": "United States",
+        "CityName": "Seattle",
+        "CountrySubDivisionCode": "Washington"
+      }
+    ],
+    "JobCategory": [{ "Name": "Mathematical Statistics", "Code": "1529" }],
+    "PositionRemuneration": [
+      {
+        "MinimumRange": "117962.0",
+        "MaximumRange": "153354.0",
+        "RateIntervalCode": "PA",
+        "Description": "Per Year"
+      }
+    ],
+    "PublicationStartDate": "2026-07-28T00:00:00.0000",
+    "QualificationSummary": "Experience with Python and machine learning models.",
+    "UserArea": {
+      "Details": {
+        "JobSummary": "Build and evaluate machine learning models on survey data. This position uses PyTorch and SQL."
+      }
+    }
+  }
+}

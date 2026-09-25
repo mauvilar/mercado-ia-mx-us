@@ -41,7 +41,7 @@ def _cruda(**kw):
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_construye_el_dataset_procesado(_fx, _ppp, tmp_path):
     raiz = _snapshot(tmp_path, [_cruda()])
     df = construir(raiz)
@@ -58,7 +58,7 @@ def test_construye_el_dataset_procesado(_fx, _ppp, tmp_path):
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_remote_scope_detecta_el_arbitraje_hacia_estados_unidos(_fx, _ppp, tmp_path):
     """Pregunta 6 del spec: un remoto desde México que paga en dólares o menciona
     un equipo en EE.UU. es la señal de arbitraje."""
@@ -86,7 +86,7 @@ def test_remote_scope_detecta_el_arbitraje_hacia_estados_unidos(_fx, _ppp, tmp_p
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_calcula_el_conteo_de_vacantes_por_empresa(_fx, _ppp, tmp_path):
     raiz = _snapshot(
         tmp_path,
@@ -102,7 +102,7 @@ def test_calcula_el_conteo_de_vacantes_por_empresa(_fx, _ppp, tmp_path):
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_el_salario_predicho_nunca_llega_a_las_columnas_normalizadas(_fx, _ppp, tmp_path):
     raiz = _snapshot(
         tmp_path,
@@ -113,7 +113,7 @@ def test_el_salario_predicho_nunca_llega_a_las_columnas_normalizadas(_fx, _ppp, 
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_nunca_ingiere_el_parquet_del_dataset_descartado(_fx, _ppp, tmp_path):
     """El dataset que el proyecto descarta por sintético trae su propio .parquet bajo
     data/raw/kaggle/_descartado/. Un glob recursivo lo metería al análisis — y sin
@@ -133,7 +133,7 @@ def test_nunca_ingiere_el_parquet_del_dataset_descartado(_fx, _ppp, tmp_path):
 
 
 @patch("src.features.build.obtener_factores_ppp", return_value={"MX": 10.0, "US": 1.0})
-@patch("src.features.build.obtener_fx_usd_mxn", return_value=18.0)
+@patch("src.features.build.obtener_tasas", return_value={"MXN": 18.0})
 def test_revienta_si_solo_existe_el_parquet_descartado(_fx, _ppp, tmp_path):
     """Sin snapshots reales debe fallar ruidoso, nunca construir con lo sintético."""
     descartado = tmp_path / "raw" / "kaggle" / "_descartado"

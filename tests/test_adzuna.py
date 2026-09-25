@@ -32,6 +32,27 @@ def test_search_manda_las_credenciales_y_el_pais_en_la_url(mock_get):
     assert params["app_key"] == "mi_key"
 
 
+@patch("src.data.adzuna.requests.get")
+def test_where_vacio_se_omite_para_buscar_a_nivel_nacional(mock_get):
+    """Así se recolectan los países de calibración: sin detalle de ciudad.
+
+    Mandar where="" explícitamente devuelve cero resultados, así que el parámetro
+    tiene que desaparecer de la petición, no ir vacío.
+    """
+    mock_get.return_value = _resp({"results": []})
+    AdzunaClient("id", "key").search("br", what="AI engineer", where="", page=1)
+    params = mock_get.call_args[1]["params"]
+    assert "where" not in params
+    assert params["what"] == "AI engineer"
+
+
+@patch("src.data.adzuna.requests.get")
+def test_where_con_valor_si_viaja_en_la_peticion(mock_get):
+    mock_get.return_value = _resp({"results": []})
+    AdzunaClient("id", "key").search("mx", what="x", where="Monterrey", page=1)
+    assert mock_get.call_args[1]["params"]["where"] == "Monterrey"
+
+
 @patch("src.data.adzuna.time.sleep")
 @patch("src.data.adzuna.requests.get")
 def test_reintenta_con_backoff_ante_429(mock_get, mock_sleep):

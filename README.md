@@ -44,6 +44,12 @@ El argumento de fondo pesa más que el número — con n=4 no existe experimento
 transferencia en ninguna dirección. Un modelo cuya precisión no se puede medir no tiene derecho a
 publicar estimaciones.
 
+El diagnóstico fue concreto: `country` era una feature del modelo pero tuvo un único valor durante
+el entrenamiento, «US», así que nunca hubo con qué aprender un desnivel entre países. El pipeline ya
+tiene el arreglo montado —países de calibración, dos fuentes estadounidenses con salario real y un
+agregador mexicano con compuerta— y está descrito abajo. El 958 % de esta línea corresponde al
+corpus con el que se corrió el notebook 04 y **no cambia hasta que entren los datos nuevos.**
+
 ---
 
 ## Por qué existe este dataset
@@ -70,6 +76,39 @@ Así que el dataset se construyó. El detector que descartó al sintético vive 
 | `ruchi798/data-science-job-salaries` | Real pero congelada en 2022 |
 | `aijobs/global-salaries-in-ai-ml-data-science` | Ref muerto: ese usuario de Kaggle no existe. Reemplazado por el CSV público del propio proyecto ai-jobs.net |
 | Scraping de Glassdoor | Sus términos lo prohíben |
+
+---
+
+## Las fuentes, y por qué cada una
+
+El corpus empezó siendo Adzuna México y Adzuna Estados Unidos. Creció por una razón concreta, no por
+acumular: el notebook 04 midió que el modelo no transfiere a México y dijo exactamente por qué.
+
+| Fuente | Qué aporta | Advertencia declarada |
+|---|---|---|
+| **Adzuna MX / US** | El núcleo del análisis. Malla ciudad por ciudad | 20 % de cobertura salarial en EE. UU., 8.9 % en México |
+| **Adzuna · 10 países de calibración** | Que `country` deje de ser una constante en el entrenamiento | Malla nacional acotada. **Sus cifras no se publican** |
+| **USAJOBS** | Vacantes federales de EE. UU. con salario real en el 100 % de las filas | Sólo gobierno, con la escala de pago federal |
+| **DOL · divulgación LCA** | El salario que un patrón se comprometió por escrito a pagar | Sólo patrones que patrocinan visas |
+| **Jooble MX** | Cobertura mexicana, para acercar el hold-out a n ≥ 30 | Mezcla salario publicado con estimado: pasa por compuerta |
+| **IMSS · INEGI · BLS** | Ancla externa del nivel salarial de cada país | Salarios **pagados**, no publicados. No entran al hold-out |
+
+**Países de análisis contra países de calibración.** `config/countries.yml` marca cada país con un
+rol. México y Estados Unidos son de análisis: malla completa y cifras publicables. Los otros diez
+son de calibración y existen para una sola cosa — darle varianza a la columna `country`, para que el
+modelo pueda aprender que hay mercados por debajo del estadounidense. La lista va de India y
+Sudáfrica hasta Suiza a propósito: con puros países ricos el arreglo no serviría de nada.
+
+La línea entre los dos roles es `solo_analisis()`, y los notebooks 01 a 03 empiezan por ahí. Abrir
+la recolección a más países no puede mover ni una cifra publicada, y esa garantía está bajo prueba.
+
+**La compuerta.** El proyecto entero descansa en que `salary_observed` signifique «el empleador
+publicó este número». Adzuna al menos declara cuál salario modeló, en un campo aparte. Los
+agregadores que siguen no: devuelven una cadena de texto donde conviven importes del empleador y
+estimaciones del portal. `src/data/salario_texto.py` los separa con un criterio pesimista —
+cualquier marca de estimación, o una periodicidad que no se pueda leer, apaga `salary_observed` — y
+`validate_frame` impide que una fila predicha llegue al conjunto observado. Perder un salario cuesta
+una fila; colar uno modelado cuesta el argumento entero.
 
 ---
 
@@ -104,18 +143,38 @@ Están aquí porque condicionan cómo leer todo lo anterior.
 
 ```bash
 make setup                 # crea el venv (Python 3.12) e instala todo
-cp .env.example .env       # y pon tu app_id/app_key de developer.adzuna.com
+cp .env.example .env       # y pon tus llaves (ver abajo)
 
 make probe                 # compuerta día 0: mide cuánta señal hay antes de invertir
-make collect               # una corrida -> data/raw/<fecha>/adzuna.parquet + manifest
+make collect               # corrida completa -> data/raw/<fecha>/<fuente>.parquet + manifest
 make build                 # data/raw/* -> data/processed/vacantes.parquet
 make notebooks             # ejecuta los cuatro notebooks de punta a punta
 
-make test                  # 85 pruebas
+make test                  # la suite completa
 make lint                  # ruff + mypy
 ```
 
-Las llaves de Adzuna son gratuitas. Kaggle se lee de `~/.kaggle/kaggle.json`.
+**Recolección por partes**, porque la cuota de Adzuna es finita y la malla completa cuesta
+cientos de llamadas por corrida:
+
+```bash
+make collect-analisis      # sólo MX y US: es la corrida semanal
+make collect-calibracion   # los 10 países de calibración; se levanta una vez, no cada semana
+make collect-fuentes       # USAJOBS y Jooble, sin gastar cuota de Adzuna
+```
+
+Las llaves de Adzuna, USAJOBS y Jooble son gratuitas y las tres son independientes: sin la de
+USAJOBS la corrida sigue, sólo se salta esa fuente. Kaggle se lee de `~/.kaggle/kaggle.json`.
+
+**Archivos que se bajan a mano** porque pesan cientos de megas o cambian de nombre cada trimestre:
+
+| Qué | Dónde se deja | Para qué |
+|---|---|---|
+| Divulgación LCA del OFLC | `data/raw/oflc/` | Salarios estadounidenses reales en volumen |
+| Salario base de cotización del IMSS | `data/raw/anclas/imss*.csv` | Ancla del nivel salarial mexicano |
+| OEWS nacional del BLS | `data/raw/anclas/oews*.csv` | Ancla del nivel salarial estadounidense |
+
+Si no están, el pipeline construye sin ellos y lo dice en el log. Ninguna de las tres es obligatoria.
 
 ---
 
@@ -123,17 +182,21 @@ Las llaves de Adzuna son gratuitas. Kaggle se lee de `~/.kaggle/kaggle.json`.
 
 ```
 src/
-  data/      adzuna.py · mapping.py · collect.py · kaggle_sources.py · schema.py · probe.py
+  data/      adzuna.py · usajobs.py · jooble.py   ← hablan HTTP
+             oflc.py · kaggle_sources.py          ← leen archivos
+             mapping.py · salario_texto.py · schema.py · collect.py · probe.py
   features/  normalize.py · taxonomy.py · extract.py · dedupe.py · build.py
-  analysis/  stats.py · hypothesis.py
+  analysis/  stats.py · hypothesis.py · anclas.py
   models/    impute.py · evaluate.py
 notebooks/   01 calidad · 02 brecha salarial · 03 skills y transparencia · 04 modelo
-config/      cities.yml · skills.yml · taxonomy.yml
+config/      countries.yml · cities.yml · skills.yml · taxonomy.yml
 docs/superpowers/  specs/ (diseño y veredicto del día 0) · plans/
 ```
 
-`adzuna.py` habla HTTP y no conoce el esquema; `mapping.py` traduce al esquema canónico y no conoce
-HTTP. Cuando Adzuna cambie un campo, sólo se toca `mapping.py`.
+`adzuna.py`, `usajobs.py` y `jooble.py` hablan HTTP y no conocen el esquema; `mapping.py` traduce al
+esquema canónico y no conoce HTTP. Cuando una API cambie un campo, sólo se toca `mapping.py`. Dar de
+alta una fuente nueva son tres piezas: su cliente, su función de mapeo y su alta explícita en
+`PARQUETS_DE_SNAPSHOT` — nunca un glob recursivo, por la razón que documenta `_cargar_snapshots`.
 
 **Stack:** Python 3.12 · uv · pandas · numpy · scipy · scikit-learn · matplotlib · seaborn ·
 requests · pyarrow · pytest · ruff · mypy

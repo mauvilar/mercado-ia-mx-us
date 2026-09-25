@@ -51,3 +51,7 @@ lint: ## ruff + mypy
 .PHONY: notebooks
 notebooks: ## Ejecutar los 4 notebooks de punta a punta
 	$(RUN) jupyter nbconvert --to notebook --execute --inplace notebooks/*.ipynb
+
+.PHONY: publish
+publish: ## Copiar los notebooks ejecutados al clon de Proyectos-data-science
+	bash scripts/publicar.sh

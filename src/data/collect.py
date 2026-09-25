@@ -26,6 +26,7 @@ from src.utils.config import (
     usajobs_credentials,
 )
 from src.utils.logging import setup_logging
+from src.utils.redaccion import describir_error
 
 CONSULTAS = [
     "AI engineer",
@@ -122,8 +123,11 @@ def ejecutar_corrida(
                 registro[country]["adzuna"], what=que, where=donde, max_pages=paginas
             )
         except Exception as exc:  # noqa: BLE001 - un hueco no debe tumbar la corrida
-            log.warning("Consulta fallida %s/%s/%s: %s", country, donde, que, exc)
-            fallidas.append({"country": country, "where": donde, "what": que, "error": str(exc)})
+            # str(exc) de requests trae la URL con app_id y app_key en el query string,
+            # y el manifest se versiona en un repo público: se guarda ya redactado.
+            error = describir_error(exc, app_id, app_key)
+            log.warning("Consulta fallida %s/%s/%s: %s", country, donde, que, error)
+            fallidas.append({"country": country, "where": donde, "what": que, "error": error})
             continue
         for cruda in crudas:
             filas.append(map_adzuna_row(cruda, country=country, snapshot_date=snapshot_date))
@@ -191,8 +195,9 @@ def recolectar_usajobs(*, destino: Path, snapshot_date: date) -> dict[str, Any]:
         try:
             crudas = client.search_all(keyword=que, max_pages=4)
         except Exception as exc:  # noqa: BLE001
-            log.warning("USAJOBS falló en %r: %s", que, exc)
-            fallidas.append({"what": que, "error": str(exc)})
+            error = describir_error(exc, email, api_key)
+            log.warning("USAJOBS falló en %r: %s", que, error)
+            fallidas.append({"what": que, "error": error})
             continue
         filas.extend(map_usajobs_row(c, snapshot_date=snapshot_date) for c in crudas)
 
@@ -218,8 +223,10 @@ def recolectar_jooble(*, destino: Path, snapshot_date: date) -> dict[str, Any]:
             try:
                 crudas = client.search_all(keywords=que, location=donde, max_pages=3)
             except Exception as exc:  # noqa: BLE001
-                log.warning("Jooble falló en %s/%s: %s", donde, que, exc)
-                fallidas.append({"where": donde, "what": que, "error": str(exc)})
+                # La llave de Jooble va en la ruta de la URL, que el error cita entera.
+                error = describir_error(exc, key)
+                log.warning("Jooble falló en %s/%s: %s", donde, que, error)
+                fallidas.append({"where": donde, "what": que, "error": error})
                 continue
             filas.extend(
                 map_jooble_row(c, country="MX", snapshot_date=snapshot_date) for c in crudas

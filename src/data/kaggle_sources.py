@@ -65,18 +65,24 @@ def descargar(ref: str, destino: Path) -> Path:
     auth = base64.b64encode(f"{creds['username']}:{creds['key']}".encode()).decode()
     zip_path = destino / f"{ref.split('/')[1]}.zip"
     if not zip_path.exists():
-        subprocess.run(
-            [
-                "curl",
-                "-sL",
-                "-H",
-                f"Authorization: Basic {auth}",
-                "-o",
-                str(zip_path),
-                f"https://www.kaggle.com/api/v1/datasets/download/{ref}",
-            ],
-            check=True,
-        )
+        try:
+            subprocess.run(
+                [
+                    "curl",
+                    "-sL",
+                    "-H",
+                    f"Authorization: Basic {auth}",
+                    "-o",
+                    str(zip_path),
+                    f"https://www.kaggle.com/api/v1/datasets/download/{ref}",
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            # El mensaje de CalledProcessError repite el comando, cabecera incluida, y
+            # main() lo imprime en el log de Actions. GitHub enmascara el secreto, no su
+            # base64. `from None` descarta ese error para que tampoco salga en la traza.
+            raise RuntimeError(f"curl terminó con código {exc.returncode} al bajar {ref}") from None
     with zipfile.ZipFile(zip_path) as zf:
         zf.extractall(destino)
     return destino

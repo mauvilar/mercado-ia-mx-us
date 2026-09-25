@@ -1,8 +1,14 @@
+import base64
+import json
+import subprocess
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
+import pytest
 
-from src.data.kaggle_sources import map_mannacharya_frame, verificar_no_sintetico
+from src.data import kaggle_sources
+from src.data.kaggle_sources import descargar, map_mannacharya_frame, verificar_no_sintetico
 from src.data.schema import CANONICAL_COLUMNS
 
 
@@ -55,3 +61,29 @@ def test_mapea_mannacharya_al_esquema_canonico():
     assert out.loc[0, "salary_observed"] is True
     # Este dataset no trae salarios modelados, así que nunca es predicho.
     assert out.loc[0, "salary_is_predicted"] is False
+
+
+def test_un_curl_fallido_no_repite_la_cabecera_de_autorizacion(tmp_path, monkeypatch):
+    """CalledProcessError cita el comando entero, cabecera Basic incluida, y main() lo
+    imprime en el log de Actions de un repo público. GitHub enmascara el secreto tal
+    cual, no su base64: el mensaje no debe llevar ni uno ni otro."""
+    (tmp_path / ".kaggle").mkdir()
+    (tmp_path / ".kaggle" / "kaggle.json").write_text(
+        json.dumps({"username": "alguien", "key": "llave-kaggle"})
+    )
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+    def curl_sin_red(cmd, **_):
+        raise subprocess.CalledProcessError(6, cmd)
+
+    monkeypatch.setattr(kaggle_sources.subprocess, "run", curl_sin_red)
+
+    with pytest.raises(RuntimeError) as info:
+        descargar("dueno/dataset", tmp_path / "destino")
+
+    mensaje = str(info.value)
+    basic = base64.b64encode(b"alguien:llave-kaggle").decode()
+    assert "llave-kaggle" not in mensaje
+    assert basic not in mensaje
+    assert "6" in mensaje and "dueno/dataset" in mensaje
+    assert info.value.__suppress_context__
